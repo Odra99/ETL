@@ -1,6 +1,5 @@
 from sys import path
 from os.path import dirname as dir
-from numpy import append
 path.append(dir(path[0]))
 import pandas as pd
 from sqlalchemy import create_engine
@@ -45,6 +44,7 @@ class Loader:
         return tmp_enterprise
     
     def loadData(self,enterprises,employees, works):
+        print('Cargando datos Base de datos')
         insert_employees = self.updateDBEmployee(employees)
         insert_employees.to_sql('Persona',con=self.engine,if_exists='append',index=False)
         insert_enterprises = self.updateDBEnterprise(enterprises)

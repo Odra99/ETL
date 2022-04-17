@@ -89,6 +89,7 @@ class Joiner:
         self.payroll = self.payroll.drop_duplicates()
     
     def join(self):
+        print('Extrayendo tablas')
         for file in self.files:
            self.getEnterprises(file)
            self.getEmployee(file)

@@ -1,38 +1,34 @@
+import re
 from sys import path
 from os.path import dirname as dir
 import numpy as np
+
 path.append(dir(path[0]))
 import pandas as pd
 from validate_email import validate_email
 
 
 class Transformer:
-
     def __init__(self):
         self.files = []
-        self.rejectedData = []
 
-    def cleanDigits(self, file):
-        # Clean DPI
-        file["Dpi"] = file["Dpi"].map(self.justDigits)
-        # Clean celphone
-        file["Telefono"] = file["Telefono"].map(self.justDigits)
-        if "Telefono_Empresa" in file:
-            file["Telefono_Empresa"] = file["Telefono_Empresa"].map(self.justDigits)
-        return file
+    def verifyCodesDpi(self, txt):
+        if txt in self.dpiStructure:
+            return txt
+        else:
+            return False
 
-    def cleanNit(self, file):
-        # Clean Nit
-        file["Nit"] = file["Nit"].map(self.justAlfNumber)
-        # Clean Nit_Empresa
-        file["Nit_Empresa"] = file["Nit_Empresa"].map(self.justAlfNumber)
+    def verifyCedulaOrder(self, txt):
+        if txt in self.cedulaOrden:
+            return txt
+        else:
+            return None
 
-    def cleanCedula(self, file):
-        if "Cedula_Orden" in file:
-            # Clean Cedula Orden
-            file["Cedula_Orden"] = file["Cedula_Orden"].map(self.justAlfNumber)
-            # Clean Cedula Registro
-            file["Cedula_Registro"] = file["Cedula_Registro"].map(self.justDigits)
+    def verifyGender(self, txt):
+        if txt == "F" or txt == "M":
+            return txt
+        else:
+            return None
 
     def justDigits(self, txt):
         try:
@@ -48,9 +44,34 @@ class Transformer:
         except:
             return "".join(c for c in txt if c.isdigit() or c.isalpha())
 
+    def cleanDigits(self, file):
+        # Clean DPI
+        file["Dpi"] = file["Dpi"].map(self.justDigits)
+        # Clean Codigo Empresa
+        file["Codigo_Unico_Empresa"] = file["Codigo_Unico_Empresa"].map(self.justDigits)
+        # Clean celphone
+        file["Telefono"] = file["Telefono"].map(self.justDigits)
+        if "Telefono_Empresa" in file:
+            file["Telefono_Empresa"] = file["Telefono_Empresa"].map(self.justDigits)
+        return file
+
+    def cleanAlfN(self, file):
+        # Clean Nit
+        file["Nit"] = file["Nit"].map(self.justAlfNumber)
+        # Clean Nit_Empresa
+        file["Nit_Empresa"] = file["Nit_Empresa"].map(self.justAlfNumber)
+
+    def cleanCedula(self, file):
+        if "Cedula_Orden" in file:
+            # Clean Cedula Orden
+            file["Cedula_Orden"] = file["Cedula_Orden"].map(self.justAlfNumber)
+            # Clean Cedula Registro
+            file["Cedula_Registro"] = file["Cedula_Registro"].map(self.justDigits)
+
     def cleanGender(self, file):
         file["Genero"] = file["Genero"].str.title().str.strip()
         file["Genero"] = file["Genero"].replace({"Masculino": "M", "Femenino": "F"})
+        file["Genero"] = file["Genero"].map(self.verifyGender)
 
     def cleanStatus(self, file):
         file["Condicion_Laboral"] = file["Condicion_Laboral"].str.title().str.strip()
@@ -60,72 +81,120 @@ class Transformer:
 
     def formatDates(self, file):
         file["Fecha_Inicial"] = file["Fecha_Inicial"].apply(
-            lambda x: pd.to_datetime(x).strftime("%d/%m/%Y")
+            lambda x: pd.to_datetime(x, infer_datetime_format=True).strftime("%d/%m/%Y")
         )
         file["Fecha_Final"] = file["Fecha_Final"].apply(
-            lambda x: pd.to_datetime(x).strftime("%d/%m/%Y")
+            lambda x: pd.to_datetime(x, infer_datetime_format=True).strftime("%d/%m/%Y")
         )
         if "Fecha_Nacimiento" in file:
             file["Fecha_Nacimiento"] = file["Fecha_Nacimiento"].apply(
-            lambda x: pd.to_datetime(x).strftime("%d/%m/%Y")
-        )
+                lambda x: pd.to_datetime(x, infer_datetime_format=True).strftime(
+                    "%d/%m/%Y"
+                )
+            )
 
     def verifyDPI(self, file):
         file["Count_DPI"] = file["Dpi"].str.len()
+        rejectdata = file[file["Count_DPI"] != 13]
         file.drop(file[file["Count_DPI"] != 13].index, inplace=True)
         file["Codes_DPI"] = file["Dpi"].str[-4:]
         file["Codes_DPI"] = file["Codes_DPI"].map(self.verifyCodesDpi)
+        rejectdata2 = file[file["Codes_DPI"] == False]
         file.drop(file[file["Codes_DPI"] == False].index, inplace=True)
         del file["Codes_DPI"]
-        del file["Count_DPI"]
-
-    def verifyCedula(self,file):
-        if "Cedula_Orden" in file:
-            file["Cedula_Orden"] = file["Cedula_Orden"].map(self.verifyCedulaOrder)            
-            file["Cedula_Registro"].mask(file["Cedula_Registro"].str.len() == 0, None, inplace=True)
-            file["Cedula_Registro"].mask(file["Cedula_Orden"].str.len() == 0, None, inplace=True)
-
-    def verifyCodesDpi(self, txt):
-        if txt in self.dpiStructure:
-            return txt
-        else:
-            return False
+        del file["Count_DPI"]        
+        del rejectdata["Count_DPI"]
+        del rejectdata2["Count_DPI"]
+        del rejectdata2["Codes_DPI"]
+        return pd.concat([rejectdata, rejectdata2])
     
-    def verifyCedulaOrder(self,txt):
-        if txt in self.cedulaOrden:
-            return txt
-        else:
-            return None
+    def getRejectData(self,file):
+        rejectdata = pd.DataFrame()
+        for label in self.requiredColumns:
+            rejectdataAux = file[file[label].astype(str).str.len() == 0]
+            file.drop(file[file[label].astype(str).str.len() == 0].index, inplace=True)
+            rejectdata = pd.concat([rejectdata,rejectdataAux])
+        return rejectdata
+
+    def verifyCedula(self, file):
+        if "Cedula_Orden" in file:
+            file["Cedula_Orden"] = file["Cedula_Orden"].map(self.verifyCedulaOrder)
+            file["Cedula_Registro"].mask(
+                file["Cedula_Registro"].str.len() == 0, None, inplace=True
+            )
+            file["Cedula_Registro"].mask(
+                file["Cedula_Orden"].str.len() == 0, None, inplace=True
+            )
 
     def verifyEmail(self, file):
         file["valid_email"] = file["Correo_Electronico_Trabajo"].apply(validate_email)
-        file["Correo_Electronico_Trabajo"].mask(file["valid_email"] == False, None, inplace=True)
+        file["Correo_Electronico_Trabajo"].mask(
+            file["valid_email"] == False, None, inplace=True
+        )
         del file["valid_email"]
 
-    def verifyNames(self,file):
-        file['is_married'] = file['Apellido_Casada'].str.len() > 0
-        file['is_women'] = np.where(file['Genero'] =='F'  ,True,False)
-        file['verify_married_last_name'] = file['is_married'] & file['is_women']
-        del file['is_married']
-        del file['is_women']
-        file["Apellido_Casada"].mask(file["verify_married_last_name"] == False, None, inplace=True)
-        del file['verify_married_last_name']
-    
+    def verifyNames(self, file):
+        file["is_married"] = file["Apellido_Casada"].str.len() > 0
+        file["is_women"] = np.where(file["Genero"] == "F", True, False)
+        file["verify_married_last_name"] = file["is_married"] & file["is_women"]
+        del file["is_married"]
+        del file["is_women"]
+        file["Apellido_Casada"].mask(
+            file["verify_married_last_name"] == False, None, inplace=True
+        )
+        del file["verify_married_last_name"]
+
+    def deleteDuplicatedData(self, file, i):
+        duplicatedData = pd.DataFrame()
+        mask = file.duplicated(keep="first")
+        duplicatedData = pd.concat([duplicatedData,file.loc[mask]])
+        name = "WrongData/Duplicated/duplicatedData" + str(i) + ".csv"
+        duplicatedData.to_csv(name,index=False)
+        
+    def deleteRejectedData(self,i,rejectData):
+        name = "WrongData/ErrorData/rejectedData" + str(i) + ".csv"
+        rejectData.to_csv(name,index=False)
+        
     def setFiles(self, files):
         self.files = files
 
     def transform(self):
+        print("Transformando Datos")
+        i = 1
         for file in self.files:
+            self.cleanGender(file)
             self.cleanStatus(file)
             self.cleanDigits(file)
             self.formatDates(file)
             self.verifyEmail(file)
-            self.verifyDPI(file)
+            rejectData1 = self.verifyDPI(file)
             self.cleanCedula(file)
             self.verifyCedula(file)
             self.verifyNames(file)
-            self.cleanNit(file)
+            self.cleanAlfN(file)
+            print('Eliminando Datos incorrectos')
+            rejectData2 = self.getRejectData(file)
+            rejectData = pd.concat([rejectData1,rejectData2])
+            self.deleteDuplicatedData(file, i)
+            self.deleteRejectedData(i,rejectData)
+            i = i + 1
     
+    requiredColumns = [
+        'Dpi',
+        'Nit',
+        'Fecha_Inicial',
+        'Fecha_Final',
+        'Nombre_Empresa',
+        'Nit_Empresa',
+        'Codigo_Unico_Empresa',
+        'Primer_Nombre',
+        'Segundo_Nombre',
+        'Primer_Apellido',
+        'Segundo_Apellido',
+        'Apellido_Casada',
+        
+    ]
+
     dpiStructure = [
         "0101","0102","0103","0104","0105","0106","0107","0108","0109","0110","0111","0112","0113","0114","0115","0116","0117",
         "0201","0202","0203","0204","0205","0206","0207","0208",

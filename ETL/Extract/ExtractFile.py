@@ -147,8 +147,6 @@ def main():
     loader = Loader()
     loader.loadData(joiner.enterprises,joiner.people,joiner.payroll)
     
-    
-
 main()
     
     
