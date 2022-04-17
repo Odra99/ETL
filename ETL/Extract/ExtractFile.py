@@ -4,6 +4,8 @@ path.append(dir(path[0]))
 import pandas as pd
 
 from Transform.Transformer import Transformer
+from Transform.Joiner import Joiner
+from Load.LoadData import Loader
 
 class Extract:
     
@@ -13,7 +15,13 @@ class Extract:
         'Segundo Nombre': 'Segundo_Nombre',
         'Primer Apellido': 'Primer_Apellido',
         'Segundo Apellido': 'Segundo_Apellido',
-        'Apellido Casada' : 'Apellido_Casada',
+        'Apellido Casada' : 'Apellido_Casada',        
+        'Fecha Nacimiento' : 'Fecha_Nacimiento',
+        'Nacimiento':'Fecha_Nacimiento',
+        'Puesto': 'Nombre_Puesto',
+        'Nombre Puesto':'Nombre_Puesto',
+        'Mes': 'Mes_Planilla',
+        'Mes Planilla':'Mes_Planilla',
         'Email Trabajo':'Correo_Electronico_Trabajo',
         'Email' : 'Correo_Electronico_Trabajo',
         'Correo Electronico Trabajo': 'Correo_Electronico_Trabajo',
@@ -34,7 +42,8 @@ class Extract:
         'Municipio':'Municipio_Trabajo',
         'Municipio Trabajo':'Municipio_Trabajo',
         'Cedula Orden':'Cedula_Orden',
-        'Cedula Registro':'Cedula_Registro'
+        'Cedula Registro':'Cedula_Registro',
+        'Sexo':'Genero'
     }
     
     requiredColumns = [
@@ -64,6 +73,13 @@ class Extract:
     requiredColumnName3 = [
         'Nombre'
     ]
+    
+    requiredColumnCedula = [
+        'Cedula_Orden'
+    ]
+    requiredColumnCedula2 = [
+        'Cedula_Registro'
+    ]
      
     
     def __init__(self):
@@ -75,7 +91,7 @@ class Extract:
     def verifyData(self):
         i = 0
         for file in self.files:    
-            file = self.cleanColumns(file)
+            file = self.renameColumns(file)
             if not self.verifyColumns(file):
                 print('removiendo archivo erroneo')
                 self.files.pop(i)
@@ -86,7 +102,7 @@ class Extract:
     def storageFiles(self, pathFile):
         self.files.append(self.readFile(pathFile))
         
-    def cleanColumns(self,file):
+    def renameColumns(self,file):
         #Uppercase and Strip
         file.columns = file.columns.str.title().str.strip()
         #Rename labels
@@ -105,9 +121,17 @@ class Extract:
                 return True
         return False
 
+    def verifyCedulaColumns(self, file):
+        if not set(self.requiredColumnCedula).issubset(file.columns) and not set(self.requiredColumnCedula2).issubset(file.columns):
+            if "Cedula_Orden" in file:
+                del file['Cedula_Orden']
+            if "Cedula_Registro" in file:
+                del file['Cedula_Registro']
+            
         
     def extractProcess(self):
         print('Leyendo archivo')
+        self.storageFiles('ETL/Extract/datos.csv')
         self.storageFiles('ETL/Extract/datos.csv')
         self.verifyData()
         
@@ -117,6 +141,12 @@ def main():
     transform = Transformer()
     transform.setFiles(extract.files)
     transform.transform()
+    joiner = Joiner()
+    joiner.setFiles(transform.files)
+    joiner.join()
+    loader = Loader()
+    loader.loadData(joiner.enterprises,joiner.people,joiner.payroll)
+    
     
 
 main()
