@@ -1,6 +1,5 @@
 from sys import path
 from os.path import dirname as dir
-import time
 from tkinter import END
 path.append(dir(path[0]))
 import pandas as pd

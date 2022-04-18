@@ -1,13 +1,9 @@
 from sys import path
 from os.path import dirname as dir
-import time
 from tkinter import END
 path.append(dir(path[0]))
 import pandas as pd
 
-from ETL.Transform.Transformer import Transformer
-from ETL.Transform.Joiner import Joiner
-from ETL.Load.LoadData import Loader
 
 class Extract:
     
@@ -67,15 +63,6 @@ class Extract:
         'Apellido_Casada',
     ]
     
-    requiredColumnsName2 = [
-        'Nombres',
-        'Apellidos'
-    ]
-    
-    requiredColumnName3 = [
-        'Nombre'
-    ]
-    
     requiredColumnCedula = [
         'Cedula_Orden'
     ]
@@ -126,12 +113,7 @@ class Extract:
         
     def verifyColumns(self,file):
         if set(self.requiredColumns).issubset(file.columns):
-            if set(self.requiredColumnsName1).issubset(file.columns):
-                return True
-            elif set(self.requiredColumnsName2).issubset(file.columns):
-                return True
-            elif set(self.requiredColumnName3).issubset(file.columns):
-                return True
+            return  set(self.requiredColumnsName1).issubset(file.columns):
         return False
 
     def verifyCedulaColumns(self, file):
@@ -142,24 +124,8 @@ class Extract:
                 del file['Cedula_Registro']
             
         
-    def extractProcess(self):
-        print('Leyendo archivo')
-        self.storageFiles('ETL/Extract/datos.csv')
-        self.storageFiles('ETL/Extract/datos.csv')
-        self.verifyFiles()
-        
-""" def main():
-    extract = Extract()
-    extract.extractProcess()
-    transform = Transformer()
-    transform.setFiles(extract.files)
-    transform.transform()
-    joiner = Joiner()
-    joiner.setFiles(transform.files)
-    joiner.join()
-    loader = Loader()
-    loader.loadData(joiner.enterprises,joiner.people,joiner.payroll)
     
-main() """
+        
+
     
     

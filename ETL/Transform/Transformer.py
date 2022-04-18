@@ -1,7 +1,5 @@
-import re
 from sys import path
 from os.path import dirname as dir
-import time
 from tkinter import END
 import numpy as np
 

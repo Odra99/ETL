@@ -5,7 +5,7 @@ from pathlib import Path
 from tkinter import *
 from tkinter import filedialog as fd
 from tkinter import ttk
-from sys import path
+from sys import getsizeof, path
 from os import system
 from os.path import dirname as dir
 
@@ -23,7 +23,10 @@ def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
 def openFolder():    
-    system('start %windir%\explorer.exe "'+dir(path[0])+'\\WrongData"')
+    system('start %windir%\explorer.exe "'+dir(path[0])+'\\Proyecto1\\WrongData"')
+
+def openFolderD():    
+    system('start %windir%\explorer.exe "'+dir(path[0])+'\\Proyecto1\\Documentation"')
 
 window = Tk()
 
@@ -97,20 +100,12 @@ button_6 = Button(
     image=button_image_6,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_6 clicked"),
+    command=openFolderD,
     relief="flat",
 )
 button_6.place(x=210.0, y=539.0, width=55.0, height=35.3055419921875)
 
-button_image_7 = PhotoImage(file=relative_to_assets("button_7.png"))
-button_7 = Button(
-    image=button_image_7,
-    borderwidth=0,
-    highlightthickness=0,
-    command=lambda: print("button_7 clicked"),
-    relief="flat",
-)
-button_7.place(x=30.0, y=540.0, width=55.0, height=35.3055419921875)
+
 
 entry_image_1 = PhotoImage(file=relative_to_assets("entry_1.png"))
 entry_bg_1 = canvas.create_image(590.0, 459.0, image=entry_image_1)
@@ -140,10 +135,11 @@ fileTable.pack()
 def deleteItems():
     global files
     # Get selected item to Delete
-    selected_item = fileTable.selection()[0]
-    item = fileTable.item(selected_item).get("values")
-    files.remove(item[1])
-    fileTable.delete(selected_item)
+    if len(fileTable.selection()) !=0:
+        selected_item = fileTable.selection()[0]
+        item = fileTable.item(selected_item).get("values")
+        files.remove(item[1])
+        fileTable.delete(selected_item)
 
 
 def open_csv_file():

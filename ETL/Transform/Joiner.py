@@ -1,8 +1,6 @@
 from sys import path
 from os.path import dirname as dir
-import time
 from tkinter import END
-import numpy as np
 path.append(dir(path[0]))
 import pandas as pd
 
@@ -91,6 +89,17 @@ class Joiner:
         self.payroll = pd.concat([self.payroll,works])
         self.payroll = self.payroll.drop_duplicates()
     
+    def deleteDuplicatedData(self, file, name):
+        duplicatedData = pd.DataFrame()
+        mask = file.duplicated(keep="first")
+        duplicatedData = pd.concat([duplicatedData,file.loc[mask]])
+        if duplicatedData.shape[0] > 0:
+            #time.sleep(5) 
+            self.consoleText.insert(END,"Almacenando "+name+" duplicados de todos los archivos: "+'\n')
+            self.consoleText.insert(END,"como: "+ "duplicatedDataAll" + name + ".csv"+'\n')
+            name = "WrongData/Duplicated/duplicatedDataAll" + name + ".csv"
+            duplicatedData.to_csv(name,index=False)
+    
     def join(self):
         #time.sleep(5) 
         self.consoleText.insert(END,"Preparando tablas: "+'\n')
@@ -98,4 +107,7 @@ class Joiner:
            self.getEnterprises(file)
            self.getEmployee(file)
            self.getWorks(file)
+        self.deleteDuplicatedData(self.payroll,"Trabajo")
+        self.deleteDuplicatedData(self.people,"Personas")
+        self.deleteDuplicatedData(self.enterprises,"Empresa")
     

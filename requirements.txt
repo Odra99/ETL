@@ -1,0 +1,5 @@
+tk==0.1.0
+psycopg2==2.9.3
+pandas==1.4.1
+SQLAlchemy==1.4.35
+validate_email==1.3
