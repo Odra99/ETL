@@ -1,5 +1,7 @@
 from sys import path
 from os.path import dirname as dir
+import time
+from tkinter import END
 import numpy as np
 path.append(dir(path[0]))
 import pandas as pd
@@ -41,8 +43,9 @@ class Joiner:
         'Salario'
     }
 
-    def __init__(self):
+    def __init__(self,consoleText):
         self.files = []
+        self.consoleText = consoleText
         self.enterprises = pd.DataFrame(columns=['Codigo','Nombre','Nit','Direccion','Telefono'])
         self.people =  pd.DataFrame(columns=['Dpi','Primer_Nombre','Segundo_Nombre','Primer_Apellido','Segundo_Apellido','Apellido_Casada','Cedula_Orden','Cedula_Registro','Direccion','Nit','Genero','Telefono','Correo_Electronico','Fecha_Nacimiento'])
         self.payroll = pd.DataFrame(columns=['Fecha_Inicial','Fecha_Final','Nombre_Puesto','Mes_Planilla','Salario'])
@@ -89,7 +92,8 @@ class Joiner:
         self.payroll = self.payroll.drop_duplicates()
     
     def join(self):
-        print('Extrayendo tablas')
+        #time.sleep(5) 
+        self.consoleText.insert(END,"Preparando tablas: "+'\n')
         for file in self.files:
            self.getEnterprises(file)
            self.getEmployee(file)

@@ -1,11 +1,13 @@
 from sys import path
 from os.path import dirname as dir
+import time
+from tkinter import END
 path.append(dir(path[0]))
 import pandas as pd
 
-from Transform.Transformer import Transformer
-from Transform.Joiner import Joiner
-from Load.LoadData import Loader
+from ETL.Transform.Transformer import Transformer
+from ETL.Transform.Joiner import Joiner
+from ETL.Load.LoadData import Loader
 
 class Extract:
     
@@ -82,24 +84,35 @@ class Extract:
     ]
      
     
-    def __init__(self):
+    def __init__(self,consoleText):
         self.files = []
+        self.filesNames = []
+        self.consoleText = consoleText
         
     def readFile(self,pathFile):
-       return pd.read_csv(pathFile)
+        try:
+            return pd.read_csv(pathFile)
+        except:
+            self.consoleText.insert(END,"Removiendo archivo: "+pathFile+'\n')
+            self.consoleText.insert(END,"No cumple con los criterios establecidos"+'\n')
+               
         
-    def verifyData(self):
+    def verifyFiles(self):
         i = 0
         for file in self.files:    
             file = self.renameColumns(file)
             if not self.verifyColumns(file):
-                print('removiendo archivo erroneo')
+                #time.sleep(5) 
+                self.consoleText.insert(END,"Removiendo archivo: "+self.filesNames.pop(i)+'\n')
+                self.consoleText.insert(END,"No cumple con los criterios establecidos"+'\n')
                 self.files.pop(i)
                 i=i-1
             i=i+1
             
         
     def storageFiles(self, pathFile):
+        self.consoleText.insert(END,"Leyendo archivo: "+pathFile+'\n')
+        self.filesNames.append(pathFile)
         self.files.append(self.readFile(pathFile))
         
     def renameColumns(self,file):
@@ -133,9 +146,9 @@ class Extract:
         print('Leyendo archivo')
         self.storageFiles('ETL/Extract/datos.csv')
         self.storageFiles('ETL/Extract/datos.csv')
-        self.verifyData()
+        self.verifyFiles()
         
-def main():
+""" def main():
     extract = Extract()
     extract.extractProcess()
     transform = Transformer()
@@ -147,6 +160,6 @@ def main():
     loader = Loader()
     loader.loadData(joiner.enterprises,joiner.people,joiner.payroll)
     
-main()
+main() """
     
     

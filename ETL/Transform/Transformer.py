@@ -1,6 +1,8 @@
 import re
 from sys import path
 from os.path import dirname as dir
+import time
+from tkinter import END
 import numpy as np
 
 path.append(dir(path[0]))
@@ -9,8 +11,10 @@ from validate_email import validate_email
 
 
 class Transformer:
-    def __init__(self):
+    def __init__(self,consoleText):
         self.files = []
+        self.consoleText = consoleText
+        self.filesNames = []
 
     def verifyCodesDpi(self, txt):
         if txt in self.dpiStructure:
@@ -148,18 +152,31 @@ class Transformer:
         duplicatedData = pd.DataFrame()
         mask = file.duplicated(keep="first")
         duplicatedData = pd.concat([duplicatedData,file.loc[mask]])
-        name = "WrongData/Duplicated/duplicatedData" + str(i) + ".csv"
-        duplicatedData.to_csv(name,index=False)
+        if duplicatedData.shape[0] > 0:
+            #time.sleep(5) 
+            self.consoleText.insert(END,"Almacenando datos duplicados del archivo: "+'\n')
+            self.consoleText.insert(END,self.filesNames[i-1]+'\n')
+            self.consoleText.insert(END,"como: "+ "duplicatedData" + str(i) + ".csv"+'\n')
+            name = "WrongData/Duplicated/duplicatedData" + str(i) + ".csv"
+            duplicatedData.to_csv(name,index=False)
         
     def deleteRejectedData(self,i,rejectData):
-        name = "WrongData/ErrorData/rejectedData" + str(i) + ".csv"
-        rejectData.to_csv(name,index=False)
         
-    def setFiles(self, files):
+        if rejectData.shape[0] > 0:
+            #time.sleep(5) 
+            self.consoleText.insert(END,"Almacenando datos rechazados del archivo: "+'\n')
+            self.consoleText.insert(END,self.filesNames[i-1]+'\n')
+            self.consoleText.insert(END,"como: "+ "rejectedData" + str(i) + ".csv"+'\n')
+            name = "WrongData/ErrorData/rejectedData" + str(i) + ".csv"
+            rejectData.to_csv(name,index=False)
+        
+    def setFiles(self, files,filesnames):
         self.files = files
+        self.filesNames = filesnames
 
     def transform(self):
-        print("Transformando Datos")
+        #time.sleep(5) 
+        self.consoleText.insert(END,"Transformando datos"+'\n')
         i = 1
         for file in self.files:
             self.cleanGender(file)
@@ -172,7 +189,8 @@ class Transformer:
             self.verifyCedula(file)
             self.verifyNames(file)
             self.cleanAlfN(file)
-            print('Eliminando Datos incorrectos')
+            #time.sleep(5) 
+            self.consoleText.insert(END,"Eliminando datos incorrectos"+'\n')
             rejectData2 = self.getRejectData(file)
             rejectData = pd.concat([rejectData1,rejectData2])
             self.deleteDuplicatedData(file, i)

@@ -1,7 +1,7 @@
 from sys import path
 from os.path import dirname as dir
 path.append(dir(path[0]))
-from Connector.DataBase import cur
+from ETL.Connector.DataBase import cur
 
 
 class ExtractDB:

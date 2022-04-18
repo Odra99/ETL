@@ -1,15 +1,18 @@
 from sys import path
 from os.path import dirname as dir
+import time
+from tkinter import END
 path.append(dir(path[0]))
 import pandas as pd
 from sqlalchemy import create_engine
 
-from Extract.ExtractDB import ExtractDB
-from Connector.DataBase import cur
+from ETL.Extract.ExtractDB import ExtractDB
+from ETL.Connector.DataBase import cur
 
 class Loader:
     
-    def __init__(self):
+    def __init__(self,consoleText):
+        self.consoleText = consoleText
         self.extractDB = ExtractDB()
         self.engine = create_engine('postgresql://postgres:Odra20$@localhost:5432/ProjectIA')
     
@@ -44,7 +47,8 @@ class Loader:
         return tmp_enterprise
     
     def loadData(self,enterprises,employees, works):
-        print('Cargando datos Base de datos')
+        #time.sleep(5)         
+        self.consoleText.insert(END,"Cargando datos a la base de datos: "+'\n')
         insert_employees = self.updateDBEmployee(employees)
         insert_employees.to_sql('Persona',con=self.engine,if_exists='append',index=False)
         insert_enterprises = self.updateDBEnterprise(enterprises)
