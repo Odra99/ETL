@@ -1,10 +1,12 @@
 import psycopg2
 
+from ETL.Connector.ConnectionConf import *
+
 conn = psycopg2.connect(
-    host="localhost",
-    database="ProjectIA",
-    user="postgres",
-    password="Odra20$"
+    host=hostParam,
+    database=databaseParam,
+    user=userParam,
+    password=passwordParam
 )
 
 cur = conn.cursor()

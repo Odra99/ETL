@@ -1,15 +1,12 @@
 from pathlib import Path
-import time
 
 # from tkinter import *
 # Explicit imports to satisfy Flake8
 from tkinter import *
 from tkinter import filedialog as fd
 from tkinter import ttk
-import tkinter as tk
-from tkinter import simpledialog
-from turtle import width
 from sys import path
+from os import system
 from os.path import dirname as dir
 
 path.append(dir(path[0]))
@@ -25,6 +22,8 @@ files = []
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
+def openFolder():    
+    system('start %windir%\explorer.exe "'+dir(path[0])+'\\WrongData"')
 
 window = Tk()
 
@@ -63,7 +62,7 @@ button_4 = Button(
     image=button_image_4,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_4 clicked"),
+    command=openFolder,
     relief="flat",
 )
 button_4.place(x=30.0, y=432.0, width=180.0, height=55.0)
